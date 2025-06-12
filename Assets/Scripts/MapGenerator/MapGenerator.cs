@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.InputSystem;
+using NUnit.Framework.Constraints;
+using System.Linq;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -9,6 +11,8 @@ public class MapGenerator : MonoBehaviour
     public Hallway horizontal_hallway;
     public Room start;
     public Room target;
+
+    private int currentSize;
 
     // Constraint: How big should the dungeon be at most
     // this will limit the run time (~10 is a good value 
@@ -47,17 +51,40 @@ public class MapGenerator : MonoBehaviour
     bool GenerateWithBacktracking(List<Vector2Int> occupied, List<Door> doors, int depth)
     {
         if (iterations > THRESHOLD) throw new System.Exception("Iteration limit exceeded");
-        return false;
+
 
 
         //If there are no more doors that need to be connected check if the dungeon has the required minimum size and return true if it does, false otherwise
-        
+        if (doors.Count == 0)
+        {
+            if (currentSize > 3)
+            {
+                return true;
+            }
+            return false;
+        }
 
-        // Select one of the doors that still have to be connected
-
+        // Select one of the doors that still have to be connected XXXXX NOT DONE XXXXXX
+        var currentDoor = doors[0];
 
         // Determines which of the available rooms are compatible with this door; if there are none, return false
-
+        List<Room> available = new List<Room>();
+        for (var room = 0; room < rooms.Count; room++)
+        {
+            var doorList = rooms[room].GetDoors();
+            for (var door = 0; door < doorList.Count; door++) {
+                if (doorList[door].IsMatching(currentDoor.GetMatching()))
+                {
+                    available.Add(rooms[room]);
+                    break;
+                }
+            }
+            
+        }
+        if (available.Count == 0)
+        {
+            return false;
+        }
 
         // Tentatively place the room and recursively call GenerateWithBacktracking
 
@@ -70,7 +97,7 @@ public class MapGenerator : MonoBehaviour
 
         // If you run out of doors and rooms to try, return false
 
-
+        return false;
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
