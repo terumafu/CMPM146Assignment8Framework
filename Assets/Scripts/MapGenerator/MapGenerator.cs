@@ -12,7 +12,6 @@ public class MapGenerator : MonoBehaviour
     public Room start;
     public Room target;
 
-    private int currentSize;
 
     // Constraint: How big should the dungeon be at most
     // this will limit the run time (~10 is a good value 
@@ -55,7 +54,7 @@ public class MapGenerator : MonoBehaviour
         //If there are no more doors that need to be connected check if the dungeon has the required minimum size and return true if it does, false otherwise
         if (doors.Count == 0)
         {
-            if (currentSize > 3)
+            if (depth > 3)
             {
                 return true;
             }
@@ -82,7 +81,7 @@ public class MapGenerator : MonoBehaviour
 
         // need to check if it "fits" in the current dungeon 
 
-        
+
         if (available.Count == 0)
         {
             return false;
