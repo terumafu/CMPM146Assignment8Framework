@@ -19,10 +19,14 @@ public class MapGenerator : MonoBehaviour
     // something a bit higher, like 25-30)
     public int MAX_SIZE;
 
+    public int MIN_SIZE = 3;
+
     // set this to a high value when the generator works
     // for debugging it can be helpful to test with few rooms
     // and, say, a threshold of 100 iterations
     public int THRESHOLD;
+
+
 
     // keep the instantiated rooms and hallways here 
     private List<GameObject> generated_objects;
@@ -54,7 +58,7 @@ public class MapGenerator : MonoBehaviour
         //If there are no more doors that need to be connected check if the dungeon has the required minimum size and return true if it does, false otherwise
         if (doors.Count == 0)
         {
-            if (depth > 3)
+            if (depth > MIN_SIZE)
             {
                 return true;
             }
@@ -63,11 +67,14 @@ public class MapGenerator : MonoBehaviour
 
         // Select one of the doors that still have to be connected XXXXX NOT DONE XXXXXX
         var currentDoor = doors[0];
-
+        Vector2Int newRoomPos = currentDoor.GetMatching().GetGridCoordinates();
+        Debug.Log(newRoomPos);
         // Determines which of the available rooms are compatible with this door; if there are none, return false
         List<Room> available = new List<Room>();
         for (var room = 0; room < rooms.Count; room++)
         {
+            LogDoors(rooms[room]);
+            RoomFits(rooms[room], newRoomPos, occupied);
             var doorList = rooms[room].GetDoors(); // gets all the doors in the room
             for (var door = 0; door < doorList.Count; door++) { //loops through all the doors
                 if (doorList[door].IsMatching(currentDoor.GetMatching())) //if the door matches our currentDoor in that it pairs with it (east-west)
@@ -101,6 +108,35 @@ public class MapGenerator : MonoBehaviour
         return false;
     }
 
+    bool RoomFits(Room room, Vector2Int location, List<Vector2Int> occupied)
+    {
+        //Debug.Log("Checking for fit");
+        List<Door> doors = room.GetDoors();
+        foreach (Door d in doors) 
+        {
+            Vector2Int adj = d.GetMatching().GetGridCoordinates() + location;
+            //Debug.Log(adj);
+            if (occupied.Contains(adj)) 
+            {
+                Debug.Log("There is a room to the " + d.GetDirection().ToString());
+            }
+            else
+            {
+                Debug.Log("There is NO room to the " + d.GetDirection().ToString());
+            }
+        } 
+        return true;
+    }
+    void LogDoors(Room room)
+    {
+        List<Door> doors = room.GetDoors();
+        string dString = "Room has doors in the following directions:";
+        foreach (Door d in doors)
+        {
+            dString = dString + " " + d.GetDirection().ToString();
+        }
+        Debug.Log(dString);
+    }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
