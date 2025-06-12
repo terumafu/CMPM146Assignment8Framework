@@ -140,19 +140,31 @@ public class MapGenerator : MonoBehaviour
         
         foreach (Vector2Int direction in directions)
         {
+            var targetDoor = false;
+            var roomDoor = false;
             Vector2Int targetLocation = direction + location;
             if (occupied.Contains(targetLocation))
             {
-                
+
                 Debug.Log("There is a room at " + targetLocation.ToString());
                 if (currentRoomsDict[targetLocation].HasDoorOnSide(flipDict[direction]))
                 {
                     Debug.Log("there is a door on the " + flipDict[direction].ToString());
+                    targetDoor = true;
 
                 }
                 if (room.HasDoorOnSide(matchDict[direction]))
                 {
+                    roomDoor = true;
                     Debug.Log("yippee");
+                }
+                if (roomDoor == targetDoor)
+                {
+
+                }
+                else
+                {
+                    return false;
                 }
             }
             else
