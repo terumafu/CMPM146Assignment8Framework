@@ -48,6 +48,29 @@ public class MapGenerator : MonoBehaviour
     {
         if (iterations > THRESHOLD) throw new System.Exception("Iteration limit exceeded");
         return false;
+
+
+        //If there are no more doors that need to be connected check if the dungeon has the required minimum size and return true if it does, false otherwise
+        
+
+        // Select one of the doors that still have to be connected
+
+
+        // Determines which of the available rooms are compatible with this door; if there are none, return false
+
+
+        // Tentatively place the room and recursively call GenerateWithBacktracking
+
+
+        // If the recursive call returns true, you instantiate the room prefab and return true
+
+
+        // If the recursive call fails, try again with another door and/or compatible room
+
+
+        // If you run out of doors and rooms to try, return false
+
+
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
