@@ -68,11 +68,11 @@ public class MapGenerator : MonoBehaviour
         List<Room> available = new List<Room>();
         for (var room = 0; room < rooms.Count; room++)
         {
-            var doorList = rooms[room].GetDoors();
-            for (var door = 0; door < doorList.Count; door++) {
-                if (doorList[door].IsMatching(currentDoor.GetMatching()))
+            var doorList = rooms[room].GetDoors(); // gets all the doors in the room
+            for (var door = 0; door < doorList.Count; door++) { //loops through all the doors
+                if (doorList[door].IsMatching(currentDoor.GetMatching())) //if the door matches our currentDoor in that it pairs with it (east-west)
                 {
-                    available.Add(rooms[room]);
+                    available.Add(rooms[room]); // add the room to the available array
                     break;
                 }
             }
