@@ -51,11 +51,15 @@ public class MapGenerator : MonoBehaviour
         occupied.Add(new Vector2Int(0, 0));
         currentRoomsDict[new Vector2Int(0, 0)] = start;
         iterations = 0;
-        GenerateWithBacktracking(occupied, doors, 1);
+        Debug.Log("Grid before backtracking");
+        Debug.Log(occupied.Count);
+        GenerateWithBacktracking(occupied, currentRoomsDict, doors, 1);
+        Debug.Log("Grid after backtracking");
+        Debug.Log(occupied.Count);
     }
 
 
-    bool GenerateWithBacktracking(List<Vector2Int> occupied, List<Door> doors, int depth)
+    bool GenerateWithBacktracking(List<Vector2Int> occupied, Dictionary<Vector2Int, Room> roomDict, List<Door> doors, int depth)
     {
         if (iterations > THRESHOLD) throw new System.Exception("Iteration limit exceeded");
 
@@ -79,10 +83,10 @@ public class MapGenerator : MonoBehaviour
         for (var room = 0; room < rooms.Count; room++)
         {
             //LogDoors(rooms[room]);
-            RoomFits(rooms[room], newRoomPos, occupied);
+            //RoomFits(rooms[room], newRoomPos, occupied, roomDict);
             var doorList = rooms[room].GetDoors(); // gets all the doors in the room
 
-            if (rooms[room].HasDoorOnSide(currentDoor.GetMatching().GetDirection()))
+            if (rooms[room].HasDoorOnSide(currentDoor.GetMatching().GetDirection()) && RoomFits(rooms[room], newRoomPos, occupied, roomDict))
             {
                 available.Add(rooms[room]); // add the room to the available array
             }
@@ -96,6 +100,8 @@ public class MapGenerator : MonoBehaviour
             return false;
         }
 
+
+
         // Tentatively place the room and recursively call GenerateWithBacktracking
 
 
@@ -103,14 +109,33 @@ public class MapGenerator : MonoBehaviour
 
 
         // If the recursive call fails, try again with another door and/or compatible room
+        List<Vector2Int> occupiedCopy;
+        Dictionary<Vector2Int, Room> roomDictCopy; 
+        for (var room = 0; room < available.Count; room++)
+        {
+            occupiedCopy = GridCopy(occupied);
+            occupiedCopy.Add(newRoomPos);
 
+            roomDictCopy = new Dictionary<Vector2Int, Room>(roomDict);
+            roomDictCopy.Add(newRoomPos, available[room]);
+
+            if (GenerateWithBacktracking(occupiedCopy, roomDictCopy, doors, depth + 1))
+            {
+                occupied = occupiedCopy;
+                roomDict = roomDictCopy;
+                generated_objects.Add(available[0].Place(newRoomPos));
+                return true;
+            }
+        }
+        
+        
 
         // If you run out of doors and rooms to try, return false
 
         return false;
     }
 
-    bool RoomFits(Room room, Vector2Int location, List<Vector2Int> occupied)
+    bool RoomFits(Room room, Vector2Int location, List<Vector2Int> occupied, Dictionary<Vector2Int, Room> roomDict)
     {
         //Debug.Log("Checking for fit");
         Debug.Log(location);
@@ -147,7 +172,7 @@ public class MapGenerator : MonoBehaviour
             {
 
                 Debug.Log("There is a room at " + targetLocation.ToString());
-                if (currentRoomsDict[targetLocation].HasDoorOnSide(flipDict[direction]))
+                if (roomDict[targetLocation].HasDoorOnSide(flipDict[direction]))
                 {
                     Debug.Log("there is a door on the " + flipDict[direction].ToString());
                     targetDoor = true;
@@ -172,7 +197,7 @@ public class MapGenerator : MonoBehaviour
                 Debug.Log("There is NO room at " + targetLocation.ToString());
             }
         }
-        // if (currentRoomsDict[adj].HasDoorOnSide(d.GetDirection()))
+        // if (roomDict[adj].HasDoorOnSide(d.GetDirection()))
         //         {
 
         //         }
@@ -188,6 +213,16 @@ public class MapGenerator : MonoBehaviour
             dString = dString + " " + d.GetDirection().ToString();
         }
         Debug.Log(dString);
+    }
+
+    List<Vector2Int> GridCopy(List<Vector2Int> original)
+    {
+        List<Vector2Int> cpy = new List<Vector2Int>();
+        foreach(Vector2Int v in original)
+        {
+            cpy.Add(v);
+        }
+        return cpy;
     }
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
