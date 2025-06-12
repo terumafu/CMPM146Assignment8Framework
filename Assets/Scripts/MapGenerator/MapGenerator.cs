@@ -52,8 +52,6 @@ public class MapGenerator : MonoBehaviour
     {
         if (iterations > THRESHOLD) throw new System.Exception("Iteration limit exceeded");
 
-
-
         //If there are no more doors that need to be connected check if the dungeon has the required minimum size and return true if it does, false otherwise
         if (doors.Count == 0)
         {
@@ -81,6 +79,10 @@ public class MapGenerator : MonoBehaviour
             }
             
         }
+
+        // need to check if it "fits" in the current dungeon 
+
+        
         if (available.Count == 0)
         {
             return false;
