@@ -119,6 +119,8 @@ public class MapGenerator : MonoBehaviour
         //keep track of room
         //add room to roomlist in coordinate room pair
         //get rid of room if needed
+        
+        Shuffle(available);
         for (var room = 0; room < available.Count; room++)
         {
             occupied.Add(newRoomPos);
@@ -276,6 +278,20 @@ public class MapGenerator : MonoBehaviour
         }
         return cpy;
     }
+
+    public void Shuffle(List<Room> rooms)
+    {
+        var count = rooms.Count;
+        var last = count - 1;
+        for (var i = 0; i < last; ++i)
+        {
+            var r = UnityEngine.Random.Range(i, count);
+            var tmp = rooms[i];
+            rooms[i] = rooms[r];
+            rooms[r] = tmp;
+        }
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
