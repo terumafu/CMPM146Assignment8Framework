@@ -5,6 +5,7 @@ using NUnit.Framework.Constraints;
 using System.Linq;
 using System.Numerics;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.Rendering;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -68,7 +69,7 @@ public class MapGenerator : MonoBehaviour
         if (iterations > THRESHOLD) throw new System.Exception("Iteration limit exceeded");
         if (occupied.Count > MAX_SIZE)
         {
-            return false;
+            //return false;
         }
         //If there are no more doors that need to be connected check if the dungeon has the required minimum size and return true if it does, false otherwise
         if (doors.Count == 0)
@@ -138,28 +139,27 @@ public class MapGenerator : MonoBehaviour
             {
                 print("coordinates: " + d.GetMatching().GetGridCoordinates());
                 var matches = false;
-                foreach (Door door in doors)
+                for (var door = doors.Count-1; door >= 0; door --)
                 {
-                    if (door.IsMatching(d))
+                    if (doors[door].IsMatching(d))
                     {
+                        doors.Remove(doors[door]);
                         print("matching is true");
                         matches = true;
                     }
-
                 }
 
                 if (matches == false)
                 {
                     tempdoors.Add(d);
                 }
-
             }
             doors.AddRange(tempdoors);
             print(doors.Count);
             
             Debug.Log("added doors: " + tempdoors.Count);
 
-            doors.RemoveAt(0);
+            //doors.RemoveAt(0);
             print("doors: " + doors.Count);
             if (GenerateWithBacktracking(occupied, doors, depth + 1))
             {
@@ -176,7 +176,7 @@ public class MapGenerator : MonoBehaviour
             }
             else
             {
-
+                doors.Add(currentDoor);
                 generated_objects.Remove(currentRoomsDict[newRoomPos]);
                 occupied.Remove(newRoomPos);
                 currentRoomsDict.Remove(newRoomPos);
