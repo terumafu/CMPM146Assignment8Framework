@@ -158,6 +158,14 @@ public class MapGenerator : MonoBehaviour
             print("doors: " + doors.Count);
             if (GenerateWithBacktracking(occupied, doors, depth + 1))
             {
+                if (currentDoor.IsHorizontal())
+                {
+                    generated_objects.Add(horizontal_hallway.Place(currentDoor));
+                }
+                else {
+                    generated_objects.Add(vertical_hallway.Place(currentDoor));
+                }
+                
 
                 return true;
             }
