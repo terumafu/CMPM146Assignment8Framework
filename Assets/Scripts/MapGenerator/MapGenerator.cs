@@ -53,47 +53,50 @@ public class MapGenerator : MonoBehaviour
         iterations = 0;
         Debug.Log("Grid before backtracking");
         Debug.Log(occupied.Count);
-        GenerateWithBacktracking(occupied, currentRoomsDict, doors, 1);
+        GenerateWithBacktracking(occupied, doors, 1);
         Debug.Log("Grid after backtracking");
         Debug.Log(occupied.Count);
     }
 
 
-    bool GenerateWithBacktracking(List<Vector2Int> occupied, Dictionary<Vector2Int, Room> roomDict, List<Door> doors, int depth)
+    bool GenerateWithBacktracking(List<Vector2Int> occupied, List<Door> doors, int depth)
     {
+        Debug.Log("depth: " + depth);
+        iterations++;
         if (iterations > THRESHOLD) throw new System.Exception("Iteration limit exceeded");
-
+        
         //If there are no more doors that need to be connected check if the dungeon has the required minimum size and return true if it does, false otherwise
         if (doors.Count == 0)
         {
             if (depth > MIN_SIZE)
             {
+                Debug.Log("depth exceeded max size");
                 return true;
             }
             return false;
         }
-
+        if (depth > MIN_SIZE)
+        {
+            return true;
+        }
         // Select one of the doors that still have to be connected XXXXX NOT DONE XXXXXX
         var currentDoor = doors[0];
         Vector2Int newRoomPos = currentDoor.GetMatching().GetGridCoordinates();
-        Debug.Log(newRoomPos);
-        
+        //Debug.Log(newRoomPos);
+        print(newRoomPos);
         // Determines which of the available rooms are compatible with this door; if there are none, return false
         List<Room> available = new List<Room>();
         for (var room = 0; room < rooms.Count; room++)
         {
-            //LogDoors(rooms[room]);
-            //RoomFits(rooms[room], newRoomPos, occupied, roomDict);
-            var doorList = rooms[room].GetDoors(); // gets all the doors in the room
-
-            if (rooms[room].HasDoorOnSide(currentDoor.GetMatching().GetDirection()) && RoomFits(rooms[room], newRoomPos, occupied, roomDict))
+            //rooms[room].HasDoorOnSide(currentDoor.GetMatching().GetDirection()) &&
+            if (RoomFits(rooms[room], newRoomPos, occupied, currentRoomsDict))
             {
                 available.Add(rooms[room]); // add the room to the available array
             }
         }
 
         // need to check if it "fits" in the current dungeon 
-
+        Debug.Log("available count: " + available.Count);
 
         if (available.Count == 0)
         {
@@ -107,24 +110,52 @@ public class MapGenerator : MonoBehaviour
 
         // If the recursive call returns true, you instantiate the room prefab and return true
 
-
+        
         // If the recursive call fails, try again with another door and/or compatible room
-        List<Vector2Int> occupiedCopy;
-        Dictionary<Vector2Int, Room> roomDictCopy; 
+
+        
         for (var room = 0; room < available.Count; room++)
         {
-            occupiedCopy = GridCopy(occupied);
-            occupiedCopy.Add(newRoomPos);
-
-            roomDictCopy = new Dictionary<Vector2Int, Room>(roomDict);
-            roomDictCopy.Add(newRoomPos, available[room]);
-
-            if (GenerateWithBacktracking(occupiedCopy, roomDictCopy, doors, depth + 1))
+            occupied.Add(newRoomPos);
+            currentRoomsDict[newRoomPos] = available[room];
+            List<Door> tempdoors = new List<Door>();
+            foreach (Door d in available[room].GetDoors())
             {
-                occupied = occupiedCopy;
-                roomDict = roomDictCopy;
+                Door matchingdoor = d.GetMatching();
+                var matches = false;
+                foreach (Door door in doors)
+                {
+                    if (door.IsMatching(matchingdoor))
+                    {
+                        matches = true;
+                    }
+
+                }
+
+                if (matches == false) {
+                    tempdoors.Add(d);
+                }
+
+            }
+            doors.AddRange(tempdoors);
+            Debug.Log("added doors: " + tempdoors.Count);
+            doors.RemoveAt(0);
+            if (GenerateWithBacktracking(occupied, doors, depth + 1))
+            {
+
                 generated_objects.Add(available[0].Place(newRoomPos));
+
                 return true;
+            }
+            else
+            {
+                currentRoomsDict.Remove(newRoomPos);
+                occupied.Remove(newRoomPos);
+                foreach (Door door in tempdoors)
+                {
+                    doors.Remove(door);    
+                }
+                
             }
         }
         
@@ -138,8 +169,7 @@ public class MapGenerator : MonoBehaviour
     bool RoomFits(Room room, Vector2Int location, List<Vector2Int> occupied, Dictionary<Vector2Int, Room> roomDict)
     {
         //Debug.Log("Checking for fit");
-        Debug.Log(location);
-        List<Door> doors = room.GetDoors();
+        //Debug.Log(location);
         List<Vector2Int> directions = new List<Vector2Int>()
         {
             new Vector2Int(1, 0),
@@ -161,46 +191,38 @@ public class MapGenerator : MonoBehaviour
            {new Vector2Int(0, 1), Door.Direction.SOUTH},
            {new Vector2Int(0, -1), Door.Direction.NORTH},
         };
-
         
         foreach (Vector2Int direction in directions)
         {
             var targetDoor = false;
             var roomDoor = false;
             Vector2Int targetLocation = direction + location;
+
             if (occupied.Contains(targetLocation))
             {
 
-                Debug.Log("There is a room at " + targetLocation.ToString());
+                //Debug.Log("There is a room at " + targetLocation.ToString());
                 if (roomDict[targetLocation].HasDoorOnSide(flipDict[direction]))
                 {
-                    Debug.Log("there is a door on the " + flipDict[direction].ToString());
+                    //Debug.Log("there is a door on the " + flipDict[direction].ToString());
                     targetDoor = true;
 
                 }
                 if (room.HasDoorOnSide(matchDict[direction]))
                 {
                     roomDoor = true;
-                    Debug.Log("yippee");
+                    //Debug.Log("yippee");
                 }
-                if (roomDoor == targetDoor)
-                {
-
-                }
-                else
+                if (roomDoor != targetDoor)
                 {
                     return false;
                 }
             }
             else
             {
-                Debug.Log("There is NO room at " + targetLocation.ToString());
+                //Debug.Log("There is NO room at " + targetLocation.ToString());
             }
         }
-        // if (roomDict[adj].HasDoorOnSide(d.GetDirection()))
-        //         {
-
-        //         }
         
         return true;
     }
