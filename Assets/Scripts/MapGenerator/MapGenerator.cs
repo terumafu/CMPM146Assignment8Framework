@@ -153,7 +153,9 @@ public class MapGenerator : MonoBehaviour
             print(doors.Count);
             
             Debug.Log("added doors: " + tempdoors.Count);
+
             doors.RemoveAt(0);
+            print("doors: " + doors.Count);
             if (GenerateWithBacktracking(occupied, doors, depth + 1))
             {
 
@@ -161,7 +163,7 @@ public class MapGenerator : MonoBehaviour
             }
             else
             {
-                
+
                 generated_objects.Remove(currentRoomsDict[newRoomPos]);
                 occupied.Remove(newRoomPos);
                 currentRoomsDict.Remove(newRoomPos);
@@ -197,17 +199,17 @@ public class MapGenerator : MonoBehaviour
         {
            {new Vector2Int(1, 0), Door.Direction.WEST},
            {new Vector2Int(-1, 0), Door.Direction.EAST},
-           {new Vector2Int(0, 1), Door.Direction.NORTH},
-           {new Vector2Int(0, -1), Door.Direction.SOUTH},
+           {new Vector2Int(0, -1), Door.Direction.NORTH},
+           {new Vector2Int(0, 1), Door.Direction.SOUTH},
         };
         Dictionary<Vector2Int, Door.Direction> matchDict = new Dictionary<Vector2Int, Door.Direction>()
         {
            {new Vector2Int(1, 0), Door.Direction.EAST},
            {new Vector2Int(-1, 0), Door.Direction.WEST},
-           {new Vector2Int(0, 1), Door.Direction.SOUTH},
-           {new Vector2Int(0, -1), Door.Direction.NORTH},
+           {new Vector2Int(0, -1), Door.Direction.SOUTH},
+           {new Vector2Int(0, 1), Door.Direction.NORTH},
         };
-        
+        print("fitting room");
         foreach (Vector2Int direction in directions)
         {
             var targetDoor = false;
@@ -220,14 +222,14 @@ public class MapGenerator : MonoBehaviour
                 //Debug.Log("There is a room at " + targetLocation.ToString());
                 if (roomDict[targetLocation].GetComponent<Room>().HasDoorOnSide(flipDict[direction]))
                 {
-                    //Debug.Log("there is a door on the " + flipDict[direction].ToString());
+                    Debug.Log("there is a matching door on the " + flipDict[direction].ToString());
                     targetDoor = true;
 
                 }
                 if (room.HasDoorOnSide(matchDict[direction]))
                 {
                     roomDoor = true;
-                    //Debug.Log("yippee");
+                    Debug.Log("we have a door on " + matchDict[direction].ToString());
                 }
                 if (roomDoor != targetDoor)
                 {
