@@ -27,7 +27,7 @@ public class MapGenerator : MonoBehaviour
     // and, say, a threshold of 100 iterations
     public int THRESHOLD;
 
-    private Dictionary<Vector2Int, Room> currentRoomsDict = new Dictionary<Vector2Int, Room>();
+    private Dictionary<Vector2Int, GameObject> currentRoomsDict = new Dictionary<Vector2Int, GameObject>();
 
 
 
@@ -49,7 +49,7 @@ public class MapGenerator : MonoBehaviour
         List<Door> doors = start.GetDoors();
         List<Vector2Int> occupied = new List<Vector2Int>();
         occupied.Add(new Vector2Int(0, 0));
-        currentRoomsDict[new Vector2Int(0, 0)] = start;
+        currentRoomsDict[new Vector2Int(0, 0)] = generated_objects[0];
         iterations = 0;
         Debug.Log("Grid before backtracking");
         Debug.Log(occupied.Count);
@@ -61,6 +61,8 @@ public class MapGenerator : MonoBehaviour
 
     bool GenerateWithBacktracking(List<Vector2Int> occupied, List<Door> doors, int depth)
     {
+        //print(generated_objects[0].GetComponent<Room>().GetDoors());
+
         Debug.Log("depth: " + depth);
         iterations++;
         if (iterations > THRESHOLD) throw new System.Exception("Iteration limit exceeded");
@@ -75,10 +77,7 @@ public class MapGenerator : MonoBehaviour
             }
             return false;
         }
-        if (depth > MIN_SIZE)
-        {
-            return true;
-        }
+        
         // Select one of the doors that still have to be connected XXXXX NOT DONE XXXXXX
         var currentDoor = doors[0];
         Vector2Int newRoomPos = currentDoor.GetMatching().GetGridCoordinates();
@@ -110,52 +109,69 @@ public class MapGenerator : MonoBehaviour
 
         // If the recursive call returns true, you instantiate the room prefab and return true
 
-        
+
         // If the recursive call fails, try again with another door and/or compatible room
 
-        
+        //instantiate room before comparing doors
+        //keep track of room
+        //add room to roomlist in coordinate room pair
+        //get rid of room if needed
         for (var room = 0; room < available.Count; room++)
         {
             occupied.Add(newRoomPos);
-            currentRoomsDict[newRoomPos] = available[room];
-            List<Door> tempdoors = new List<Door>();
-            foreach (Door d in available[room].GetDoors())
+
+            var newObject = available[room].Place(newRoomPos);//instantiate new object
+            foreach (Door d in newObject.GetComponent<Room>().GetDoors(newRoomPos))
             {
-                Door matchingdoor = d.GetMatching();
+                print("grid coordinates: " + d.GetGridCoordinates());
+            }
+            generated_objects.Add(newObject);
+            currentRoomsDict[newRoomPos] = newObject;//add new object to list and dictionary
+
+            List<Door> tempdoors = new List<Door>();
+            foreach (Door d in newObject.GetComponent<Room>().GetDoors(newRoomPos))//iterate through new object's doors
+            {
+                print("coordinates: " + d.GetMatching().GetGridCoordinates());
                 var matches = false;
                 foreach (Door door in doors)
                 {
-                    if (door.IsMatching(matchingdoor))
+                    if (door.IsMatching(d))
                     {
+                        print("matching is true");
                         matches = true;
                     }
 
                 }
 
-                if (matches == false) {
+                if (matches == false)
+                {
                     tempdoors.Add(d);
                 }
 
             }
             doors.AddRange(tempdoors);
+            print(doors.Count);
+            
             Debug.Log("added doors: " + tempdoors.Count);
             doors.RemoveAt(0);
             if (GenerateWithBacktracking(occupied, doors, depth + 1))
             {
 
-                generated_objects.Add(available[0].Place(newRoomPos));
-
                 return true;
             }
             else
             {
-                currentRoomsDict.Remove(newRoomPos);
+                
+                generated_objects.Remove(currentRoomsDict[newRoomPos]);
                 occupied.Remove(newRoomPos);
+                currentRoomsDict.Remove(newRoomPos);
+                Destroy(newObject);
+
                 foreach (Door door in tempdoors)
                 {
-                    doors.Remove(door);    
+                    doors.Remove(door);
                 }
-                
+
             }
         }
         
@@ -166,7 +182,7 @@ public class MapGenerator : MonoBehaviour
         return false;
     }
 
-    bool RoomFits(Room room, Vector2Int location, List<Vector2Int> occupied, Dictionary<Vector2Int, Room> roomDict)
+    bool RoomFits(Room room, Vector2Int location, List<Vector2Int> occupied, Dictionary<Vector2Int, GameObject> roomDict)
     {
         //Debug.Log("Checking for fit");
         //Debug.Log(location);
@@ -202,7 +218,7 @@ public class MapGenerator : MonoBehaviour
             {
 
                 //Debug.Log("There is a room at " + targetLocation.ToString());
-                if (roomDict[targetLocation].HasDoorOnSide(flipDict[direction]))
+                if (roomDict[targetLocation].GetComponent<Room>().HasDoorOnSide(flipDict[direction]))
                 {
                     //Debug.Log("there is a door on the " + flipDict[direction].ToString());
                     targetDoor = true;
@@ -217,6 +233,7 @@ public class MapGenerator : MonoBehaviour
                 {
                     return false;
                 }
+                
             }
             else
             {
